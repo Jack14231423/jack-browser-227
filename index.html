@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jack Browser</title>
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  background-size: cover;
+  background-position: center;
+  transition: background 1s ease-in-out, color 0.5s ease-in-out;
+  color: white;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: fadeIn 1s forwards;
+  overflow-x: hidden;
+}
+@keyframes fadeIn { to { opacity: 1; transform: scale(1); } }
+body.light { color: black; }
+
+#header {
+  position: fixed;
+  top: 10px;
+  left: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  background: rgba(0,0,0,0.5); /* tmavší průhledné pozadí */
+  padding: 8px 15px;
+  border-radius: 12px;
+  z-index: 1001;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  transition: background 0.4s ease;
+}
+
+.centered { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
+
+.search-box { width: 300px; transition: transform 0.4s ease; }
+.search-box:hover { transform: scale(1.05); }
+.search-box input {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 30px;
+  font-size: 18px;
+  outline: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  background: rgba(0,0,0,0.5);
+  color: white;
+  backdrop-filter: blur(5px);
+  transition: all 0.4s ease;
+}
+.search-box input:hover { box-shadow: 0 6px 25px rgba(0,0,0,0.35); }
+.search-box input:focus { box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+
+.quick-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.quick-links button {
+  width: 100px;
+  height: 100px;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease;
+}
+.quick-links button:hover { transform: scale(1.1); background: rgba(0,0,0,0.7); }
+.quick-links img { width: 48px; height: 48px; margin-bottom: 8px; }
+
+.menu-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 25px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.5s ease-in-out;
+  font-weight: bold;
+  z-index: 1000;
+}
+.menu-button:hover { transform: scale(1.08); background: rgba(0,0,0,0.7); }
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: -360px;
+  width: 320px;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(15px);
+  padding: 25px 20px;
+  box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+  transition: right 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 999;
+  overflow-y: auto;
+}
+.side-menu.open { right: 0; }
+
+.side-menu h2, .side-menu h3 { margin: 0; font-weight: 500; }
+.side-menu button {
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.4s ease-in-out;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  backdrop-filter: blur(5px);
+}
+.side-menu button:hover { transform: scale(1.05); background: rgba(255,255,255,0.25); }
+
+.history-list { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+.history-list li { cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.3s ease; }
+.history-list li:hover { background: rgba(255,255,255,0.2); }
+
+@media(max-width: 768px) { 
+  .search-box { width: 80%; } 
+  .side-menu { width: 250px; } 
+  .quick-links button { width: 80px; height: 80px; font-size: 12px; } 
+  .quick-links img { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">Jack Browser</div>
+
+<div class="centered">
+  <div class="search-box">
+    <input type="text" placeholder="Hledat na Google..." onkeydown="searchGoogle(event)">
+  </div>
+
+  <div class="quick-links">
+    <button onclick="window.open('https://www.youtube.com','_blank')">
+      <img src="https://img.icons8.com/color/48/000000/youtube-play.png" alt="YouTube">YouTube
+    </button>
+    <button onclick="window.open('https://discord.com','_blank')">
+      <img src="https://img.icons8.com/color/48/000000/discord-logo.png" alt="Discord">Discord
+    </button>
+    <button onclick="window.open('https://open.spotify.com','_blank')">
+      <img src="https://img.icons8.com/color/48/000000/spotify.png" alt="Spotify">Spotify
+    </button>
+    <button onclick="window.open('https://www.netflix.com','_blank')">
+      <img src="https://img.icons8.com/color/48/000000/netflix.png" alt="Netflix">Netflix
+    </button>
+    <button onclick="window.open('https://mail.google.com','_blank')">
+      <img src="https://img.icons8.com/color/48/000000/gmail.png" alt="Gmail">Gmail
+    </button>
+  </div>
+</div>
+
+<div class="menu-button" onclick="toggleMenu()">☰ Menu</div>
+
+<div class="side-menu" id="sideMenu">
+  <h2>Nastavení</h2>
+  <button onclick="toggleTheme()">🌗 Změnit motiv</button>
+  <h3>Zvětšení / Zmenšení</h3>
+  <button onclick="zoomPage(1.1)">➕ Přiblížit</button>
+  <button onclick="zoomPage(0.9)">➖ Oddálit</button>
+  <h3>Historie hledání</h3>
+  <ul class="history-list" id="historyList"></ul>
+</div>
+
+<script>
+// Náhodná tapeta
+const wallpapers = [
+  'https://picsum.photos/1920/1080?random=1',
+  'https://picsum.photos/1920/1080?random=2',
+  'https://picsum.photos/1920/1080?random=3',
+  'https://picsum.photos/1920/1080?random=4'
+];
+if(localStorage.getItem('wallpaper')){
+  document.body.style.backgroundImage = `url(${localStorage.getItem('wallpaper')})`;
+}else{
+  let w = wallpapers[Math.floor(Math.random()*wallpapers.length)];
+  document.body.style.backgroundImage = `url(${w})`;
+  localStorage.setItem('wallpaper', w);
+}
+
+// Historie
+let historyData = JSON.parse(localStorage.getItem('history')) || [];
+renderHistory();
+
+// Google search + historie
+function searchGoogle(event){
+  if(event.key==='Enter'){
+    const query=event.target.value.trim();
+    if(query!==''){
+      window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`,'_blank');
+      addToHistory(query);
+      event.target.value='';
+    }
+  }
+}
+function addToHistory(q){
+  if(!historyData.includes(q)) historyData.unshift(q);
+  if(historyData.length>10) historyData.pop();
+  localStorage.setItem('history', JSON.stringify(historyData));
+  renderHistory();
+}
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  list.innerHTML='';
+  historyData.forEach(item=>{
+    const li=document.createElement('li');
+    li.textContent=item;
+    li.onclick=()=>window.open(`https://www.google.com/search?q=${encodeURIComponent(item)}`,'_blank');
+    list.appendChild(li);
+  });
+}
+
+// Menu, theme, zoom
+function toggleMenu(){document.getElementById("sideMenu").classList.toggle("open");}
+
+function toggleTheme(){
+  const body = document.body;
+  body.classList.toggle("light");
+  const isLight = body.classList.contains("light");
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+  const searchInput = document.querySelector('.search-box input');
+  searchInput.style.color = isLight ? 'black' : 'white';
+  searchInput.style.background = isLight ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)';
+
+  document.querySelectorAll('.quick-links button').forEach(btn=>{
+    btn.style.color = isLight ? 'black' : 'white';
+    btn.style.background = isLight ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)';
+  });
+
+  const menu = document.querySelector('.side-menu');
+  menu.style.background = isLight ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+  document.querySelectorAll('.side-menu button').forEach(btn=>{
+    btn.style.background = isLight ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
+    btn.style.color = isLight ? 'black' : 'white';
+  });
+  document.querySelectorAll('.side-menu h2, .side-menu h3').forEach(el=>{
+    el.style.color = isLight ? 'black' : 'white';
+  });
+
+  document.getElementById('header').style.color = 'white';
+}
+
+function zoomPage(f){
+  const body=document.body;
+  let currentZoom = parseFloat(localStorage.getItem('zoom')) || 1;
+  currentZoom *= f;
+  body.style.zoom = currentZoom;
+  localStorage.setItem('zoom', currentZoom);
+}
+
+// Načtení uloženého motivu
+if(localStorage.getItem('theme')==='light') toggleTheme();
+if(localStorage.getItem('zoom')) document.body.style.zoom = localStorage.getItem('zoom');
+</script>
+</body>
+</html>
